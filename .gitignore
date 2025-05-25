@@ -1,0 +1,7 @@
+# Logs
+logs
+*.log
+
+/__pycache__
+/panocamadder_updater/
+todo.md
