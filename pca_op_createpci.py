@@ -27,7 +27,7 @@ ops = {"+": operator.add,
 
 
 def removeImgExtension(string):
-    return string.split('.')[0]
+    return string.rsplit('.', 1)[0]
 
 
 def addpci(pano, location, rotation):
