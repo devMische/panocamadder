@@ -1258,6 +1258,11 @@ class PCAPLUS_PT_panorenderer(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        # rendertype
+        row = layout.row()
+        row.label(text="Type:")
+        row.prop(context.scene, "rendertype", text='')
+
         # name
         row = layout.row()
         row.label(text="Name:")
@@ -1269,14 +1274,15 @@ class PCAPLUS_PT_panorenderer(bpy.types.Panel):
         row.prop(context.scene, "rendersize", text='')
 
         # north
-        row = layout.row()
-        row.label(text="North:")
-        row.prop(context.scene, "cb_north", text='')
+        if context.scene.rendertype == 'panorama':
+            row = layout.row()
+            row.label(text="North:")
+            row.prop(context.scene, "cb_north", text='')
 
-        # animation
-        row = layout.row()
-        row.label(text="Animation (image sequence ):")
-        row.prop(context.scene, "cb_ani", text='')
+            # animation
+            row = layout.row()
+            row.label(text="Animation (image sequence ):")
+            row.prop(context.scene, "cb_ani", text='')
 
         # JSON
         row = layout.row()

@@ -30,7 +30,6 @@ class PCA_OT_panorender(bpy.types.Operator):
     jsonoutput = []
     pcioutput = []
 
-    multirow = True
     multirow_rotations = [
         (1.5707963705062866, 0.0),
         (1.5707963705062866, 0.7853981852531433),
@@ -60,13 +59,6 @@ class PCA_OT_panorender(bpy.types.Operator):
         decis = bpy.context.scene.panodecis
         renderpano_extension = bpy.context.preferences.addons[
             'panocamadder'].preferences.renderpano_extension
-
-        # rotate rendercam
-        # print('Rendercamera rotation: ', rendercamera.rotation_euler[2])
-        # rendercamera.rotation_euler[2] -= 1.5708
-        # print('Rendercamera rotation: ', rendercamera.rotation_euler[2])
-        # rendercamera.rotation_euler[2] += 1.5708
-        # print('Rendercamera rotation: ', rendercamera.rotation_euler[2])
 
         # PCA TXT
         pcatxt = bpy.data.texts['pca.txt']
@@ -123,6 +115,7 @@ class PCA_OT_panorender(bpy.types.Operator):
 
     # check/add cubecam
     def addRenderCamera(self):
+        rendertype = bpy.context.scene.rendertype
         rendersize = bpy.context.scene.rendersize
 
         # check/add rendercam
@@ -140,35 +133,62 @@ class PCA_OT_panorender(bpy.types.Operator):
 
         bpy.context.view_layer.objects.active = rendercamera
 
-        if bpy.context.scene.render.engine != 'CYCLES':
+        # PANORAMA
+        if rendertype == 'panorama':
+            # CYCLES equirectangular
+            if bpy.context.scene.render.engine == 'CYCLES':
+                bpy.context.object.data.type = 'PANO'
+                try:
+                    bpy.context.object.data.cycles.panorama_type = 'EQUIRECTANGULAR'  # blender3.6
 
-            bpy.context.object.data.type = 'PERSP'
+                except AttributeError:
+                    bpy.context.object.data.panorama_type = 'EQUIRECTANGULAR'  # blender4.1
 
-            if self.multirow == True:
-                bpy.context.object.data.lens_unit = 'MILLIMETERS'
-                bpy.context.object.data.lens = 15
-                bpy.context.scene.render.resolution_y = rendersize
-                bpy.context.scene.render.resolution_x = int(rendersize / 3 * 2)
+                bpy.context.scene.render.resolution_x = rendersize
+                bpy.context.scene.render.resolution_y = int(rendersize / 2)
+            # EEVEE cubefaces
             else:
                 bpy.context.object.data.lens_unit = 'FOV'
                 bpy.context.object.data.angle = 1.5708
                 bpy.context.scene.render.resolution_x = rendersize
                 bpy.context.scene.render.resolution_y = rendersize
+        # IMAGES
         else:
-            bpy.context.object.data.type = 'PANO'
-            try:
-                bpy.context.object.data.cycles.panorama_type = 'EQUIRECTANGULAR'  # blender3.6
+            bpy.context.object.data.lens_unit = 'MILLIMETERS'
+            bpy.context.object.data.lens = 15
+            bpy.context.scene.render.resolution_y = rendersize
+            bpy.context.scene.render.resolution_x = int(rendersize / 3 * 2)
 
-            except AttributeError:
-                bpy.context.object.data.panorama_type = 'EQUIRECTANGULAR'  # blender4.1
+        # if bpy.context.scene.render.engine != 'CYCLES':
 
-            bpy.context.scene.render.resolution_x = rendersize
-            bpy.context.scene.render.resolution_y = int(rendersize / 2)
+        #     bpy.context.object.data.type = 'PERSP'
+
+        #     if self.multirow == True:
+        #         bpy.context.object.data.lens_unit = 'MILLIMETERS'
+        #         bpy.context.object.data.lens = 15
+        #         bpy.context.scene.render.resolution_y = rendersize
+        #         bpy.context.scene.render.resolution_x = int(rendersize / 3 * 2)
+        #     else:
+        #         bpy.context.object.data.lens_unit = 'FOV'
+        #         bpy.context.object.data.angle = 1.5708
+        #         bpy.context.scene.render.resolution_x = rendersize
+        #         bpy.context.scene.render.resolution_y = rendersize
+        # else:
+        #     bpy.context.object.data.type = 'PANO'
+        #     try:
+        #         bpy.context.object.data.cycles.panorama_type = 'EQUIRECTANGULAR'  # blender3.6
+
+        #     except AttributeError:
+        #         bpy.context.object.data.panorama_type = 'EQUIRECTANGULAR'  # blender4.1
+
+        #     bpy.context.scene.render.resolution_x = rendersize
+        #     bpy.context.scene.render.resolution_y = int(rendersize / 2)
 
     # render panorama
     def renderpano(self, scenecams, scenecam):
 
         # checkboxes
+        rendertype = bpy.context.scene.rendertype
         cb_north = bpy.context.scene.cb_north
         cb_ani = bpy.context.scene.cb_ani
 
@@ -207,38 +227,37 @@ class PCA_OT_panorender(bpy.types.Operator):
         bpy.context.view_layer.objects.active = rendercamera
         bpy.context.scene.transform_orientation_slots[0].type = 'GLOBAL'
 
-        if bpy.context.scene.render.engine != 'CYCLES':
+        # IMAGES
+        if rendertype == 'images':
+            print('Multirow!')
+            # print output values
+            rendercamera.rotation_euler[0] = self.multirow_rotations[0][0]
+            rendercamera.rotation_euler[1] = 0
+            rendercamera.rotation_euler[2] = self.multirow_rotations[0][1]
+            rendercamera.rotation_euler[0] -= 1.5708
+            self.outputvalues(rendercamera, panoname, frame)
 
-            # multirow
-            if self.multirow == True:
-                print('Multirow!')
-                # print output values
-                rendercamera.rotation_euler[0] = self.multirow_rotations[0][0]
+            for rot in self.multirow_rotations:
+                print('Rotation:', rot)
+
+                rendercamera.rotation_euler[0] = rot[0]
                 rendercamera.rotation_euler[1] = 0
-                rendercamera.rotation_euler[2] = self.multirow_rotations[0][1]
-                rendercamera.rotation_euler[0] -= 1.5708
-                self.outputvalues(rendercamera, panoname, frame)
+                rendercamera.rotation_euler[2] = rot[1]
 
-                for rot in self.multirow_rotations:
-                    print('Rotation:', rot)
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_{str(self.multirow_rotations.index(rot)).zfill(2)}'
+                else:
+                    path = f'{outputpath}{panoname}_{str(self.multirow_rotations.index(rot)).zfill(2)}'
 
-                    rendercamera.rotation_euler[0] = rot[0]
-                    rendercamera.rotation_euler[1] = 0
-                    rendercamera.rotation_euler[2] = rot[1]
+                # render
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
-                    if cb_ani == True:
-                        path = f'{outputpath}{panoname}_{frame}_{str(self.multirow_rotations.index(rot)).zfill(2)}'
-                    else:
-                        path = f'{outputpath}{panoname}_{str(self.multirow_rotations.index(rot)).zfill(2)}'
-
-                    # render
-                    bpy.context.scene.render.filepath = path
-                    bpy.ops.render.render(
-                        animation=False, write_still=True, use_viewport=False, layer='', scene='')
-
-            # cubafaces
-            else:
-
+        else:
+            print('Panorama!')
+            # EEVEE cubefaces
+            if bpy.context.scene.render.engine != 'CYCLES':
                 # front
                 if cb_north == True:
                     rendercamera.rotation_euler[0] = 1.5708
@@ -346,31 +365,31 @@ class PCA_OT_panorender(bpy.types.Operator):
                 bpy.ops.render.render(
                     animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
-        # CYCLES equirectangular
-        else:
-            if cb_north == True:
-                rendercamera.rotation_euler[0] = 1.5708
-                rendercamera.rotation_euler[1] = 0
-                rendercamera.rotation_euler[2] = 0
+            # CYCLES equirectangular
             else:
-                rendercamera.rotation_euler[0] = rx
-                rendercamera.rotation_euler[1] = ry
-                rendercamera.rotation_euler[2] = rz
+                if cb_north == True:
+                    rendercamera.rotation_euler[0] = 1.5708
+                    rendercamera.rotation_euler[1] = 0
+                    rendercamera.rotation_euler[2] = 0
+                else:
+                    rendercamera.rotation_euler[0] = rx
+                    rendercamera.rotation_euler[1] = ry
+                    rendercamera.rotation_euler[2] = rz
 
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}'
-            else:
-                path = f'{outputpath}{panoname}'
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}'
+                else:
+                    path = f'{outputpath}{panoname}'
 
-            # print output values
-            rendercamera.rotation_euler[0] -= 1.5708
-            self.outputvalues(rendercamera, panoname, frame)
-            rendercamera.rotation_euler[0] += 1.5708
+                # print output values
+                rendercamera.rotation_euler[0] -= 1.5708
+                self.outputvalues(rendercamera, panoname, frame)
+                rendercamera.rotation_euler[0] += 1.5708
 
-            # render
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
+                # render
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
         # reset outputpath
         bpy.context.scene.render.filepath = outputpath
@@ -503,18 +522,18 @@ class PCA_OT_panorender(bpy.types.Operator):
                 framesinfo = f'Frames: {framerange}'
                 pcaminfo = f'Cameras: {scenecamslen}'
 
-                # cubefacecount
-                if bpy.context.scene.render.engine != 'CYCLES':
-                    if self.multirow == True:
-                        cubefacecount = framerange * len(
-                            self.multirow_rotations) * scenecamslen
-                        renderinfo = f'{cubefacecount} multirow images will be rendered!'
-                    else:
+                if context.scene.rendertype == 'images':
+                    cubefacecount = framerange * len(
+                        self.multirow_rotations) * scenecamslen
+                    renderinfo = f'{cubefacecount} multirow images will be rendered!'
+
+                if context.scene.rendertype == 'panorama':
+                    if bpy.context.scene.render.engine != 'CYCLES':
                         cubefacecount = framerange * 6 * scenecamslen
                         renderinfo = f'{cubefacecount} cubeface images will be rendered!'
-                else:
-                    equicount = framerange * scenecamslen
-                    renderinfo = f'{equicount} equirectangular panorama will be rendered!'
+                    else:
+                        equicount = framerange * scenecamslen
+                        renderinfo = f'{equicount} equirectangular panorama will be rendered!'
 
                 # popuplayout
                 layout = self.layout

@@ -134,6 +134,13 @@ class PCAsettings(bpy.types.PropertyGroup):
         name="createuv", description="create UV layout", default=False)
 
     # panorender checkbox
+    bpy.types.Scene.rendertype = bpy.props.EnumProperty(
+        name="",
+        description="Panorama or Images",
+        items=[('panorama', "Panorama", ""),
+               ('images', "Images", "")
+               ]
+    )
     bpy.types.Scene.pname = bpy.props.StringProperty(
         name="pname", description="Give the panorama a name", default='MyPano')
     bpy.types.Scene.rendersize = bpy.props.IntProperty(
