@@ -30,6 +30,26 @@ class PCA_OT_panorender(bpy.types.Operator):
     jsonoutput = []
     pcioutput = []
 
+    multirow = True
+    multirow_rotations = [
+        (1.5707963705062866, 0.0),
+        (1.5707963705062866, 0.7853981852531433),
+        (1.5707963705062866, 1.5707963705062866),
+        (1.5707963705062866, 2.356194496154785),
+        (1.5707963705062866, 3.1415927410125732),
+        (1.5707963705062866, 3.9269909858703613),
+        (1.5707963705062866, 4.7123894691467285),
+        (1.5707963705062866, 5.497787952423096),
+        (2.356194496154785, 0.0),
+        (2.356194496154785, 1.5707963705062866),
+        (2.356194496154785, 3.1415927410125732),
+        (2.356194496154785, 4.7123894691467285),
+        (0.7853981852531433, 0.0),
+        (0.7853981852531433, 1.5707963705062866),
+        (0.7853981852531433, 3.1415927410125732),
+        (0.7853981852531433, 4.7123894691467285)
+    ]
+
     # output values
     def outputvalues(self, rendercamera, panoname, frame):
 
@@ -57,7 +77,7 @@ class PCA_OT_panorender(bpy.types.Operator):
 
         pcatxt.write('\n')
         pcatxt.write(
-            f'origin="{get_krp_origin(rendercamera,decis)[0]}|{get_krp_origin(rendercamera,decis)[1]}|{get_krp_origin(rendercamera,decis)[2]}"\n')
+            f'origin="{get_krp_origin(rendercamera, decis)[0]}|{get_krp_origin(rendercamera, decis)[1]}|{get_krp_origin(rendercamera, decis)[2]}"\n')
         pcatxt.write(
             f'ox="{get_krp_loc(rendercamera, decis)[0]}" oy="{get_krp_loc(rendercamera, decis)[1]}" oz="{get_krp_loc(rendercamera, decis)[2]}"\n')
         pcatxt.write(
@@ -123,11 +143,17 @@ class PCA_OT_panorender(bpy.types.Operator):
         if bpy.context.scene.render.engine != 'CYCLES':
 
             bpy.context.object.data.type = 'PERSP'
-            bpy.context.object.data.lens_unit = 'FOV'
-            bpy.context.object.data.angle = 1.5708
 
-            bpy.context.scene.render.resolution_x = rendersize
-            bpy.context.scene.render.resolution_y = rendersize
+            if self.multirow == True:
+                bpy.context.object.data.lens_unit = 'MILLIMETERS'
+                bpy.context.object.data.lens = 15
+                bpy.context.scene.render.resolution_y = rendersize
+                bpy.context.scene.render.resolution_x = int(rendersize / 3 * 2)
+            else:
+                bpy.context.object.data.lens_unit = 'FOV'
+                bpy.context.object.data.angle = 1.5708
+                bpy.context.scene.render.resolution_x = rendersize
+                bpy.context.scene.render.resolution_y = rendersize
         else:
             bpy.context.object.data.type = 'PANO'
             try:
@@ -181,115 +207,144 @@ class PCA_OT_panorender(bpy.types.Operator):
         bpy.context.view_layer.objects.active = rendercamera
         bpy.context.scene.transform_orientation_slots[0].type = 'GLOBAL'
 
-        # cubafaces
         if bpy.context.scene.render.engine != 'CYCLES':
 
-            # front
-            if cb_north == True:
-                rendercamera.rotation_euler[0] = 1.5708
+            # multirow
+            if self.multirow == True:
+                print('Multirow!')
+                # print output values
+                rendercamera.rotation_euler[0] = self.multirow_rotations[0][0]
                 rendercamera.rotation_euler[1] = 0
-                rendercamera.rotation_euler[2] = 0
-            else:
-                rendercamera.rotation_euler[0] = rx
-                rendercamera.rotation_euler[1] = ry
-                rendercamera.rotation_euler[2] = rz
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}_f'
-            else:
-                path = f'{outputpath}{panoname}_f'
+                rendercamera.rotation_euler[2] = self.multirow_rotations[0][1]
+                rendercamera.rotation_euler[0] -= 1.5708
+                self.outputvalues(rendercamera, panoname, frame)
 
-            # print output values
-            rendercamera.rotation_euler[0] -= 1.5708
-            self.outputvalues(rendercamera, panoname, frame)
-            rendercamera.rotation_euler[0] += 1.5708
+                for rot in self.multirow_rotations:
+                    print('Rotation:', rot)
 
-            # render
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
+                    rendercamera.rotation_euler[0] = rot[0]
+                    rendercamera.rotation_euler[1] = 0
+                    rendercamera.rotation_euler[2] = rot[1]
 
-            # left
-            if cb_north == True:
-                rendercamera.rotation_euler[2] = 1.5708
-            else:
-                scenecam.select_set(False)
-                rendercamera.select_set(True)
-                bpy.ops.transform.rotate(
-                    value=-1.5708, orient_axis='Y', orient_type='LOCAL')
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}_l'
-            else:
-                path = f'{outputpath}{panoname}_l'
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
+                    if cb_ani == True:
+                        path = f'{outputpath}{panoname}_{frame}_{str(self.multirow_rotations.index(rot)).zfill(2)}'
+                    else:
+                        path = f'{outputpath}{panoname}_{str(self.multirow_rotations.index(rot)).zfill(2)}'
 
-            # back
-            if cb_north == True:
-                rendercamera.rotation_euler[2] = 3.14159
-            else:
-                bpy.ops.transform.rotate(
-                    value=-1.5708, orient_axis='Y', orient_type='LOCAL')
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}_b'
-            else:
-                path = f'{outputpath}{panoname}_b'
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
+                    # render
+                    bpy.context.scene.render.filepath = path
+                    bpy.ops.render.render(
+                        animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
-            # right
-            if cb_north == True:
-                rendercamera.rotation_euler[2] = 4.71239
+            # cubafaces
             else:
-                bpy.ops.transform.rotate(
-                    value=-1.5708, orient_axis='Y', orient_type='LOCAL')
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}_r'
-            else:
-                path = f'{outputpath}{panoname}_r'
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
-            # up
-            if cb_north == True:
-                rendercamera.rotation_euler[0] = 3.14159
-                rendercamera.rotation_euler[2] = 0
-            else:
-                scenecam.select_set(False)
-                rendercamera.select_set(True)
-                rendercamera.rotation_euler[0] = rx
-                rendercamera.rotation_euler[1] = ry
-                rendercamera.rotation_euler[2] = rz
-                bpy.ops.transform.rotate(
-                    value=-1.5708, orient_axis='X', orient_type='LOCAL')
+                # front
+                if cb_north == True:
+                    rendercamera.rotation_euler[0] = 1.5708
+                    rendercamera.rotation_euler[1] = 0
+                    rendercamera.rotation_euler[2] = 0
+                else:
+                    rendercamera.rotation_euler[0] = rx
+                    rendercamera.rotation_euler[1] = ry
+                    rendercamera.rotation_euler[2] = rz
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_f'
+                else:
+                    path = f'{outputpath}{panoname}_f'
 
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}_u'
-            else:
-                path = f'{outputpath}{panoname}_u'
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
+                # print output values
+                rendercamera.rotation_euler[0] -= 1.5708
+                self.outputvalues(rendercamera, panoname, frame)
+                rendercamera.rotation_euler[0] += 1.5708
 
-            # down
-            if cb_north == True:
-                rendercamera.rotation_euler[0] = 0
-            else:
-                rendercamera.rotation_euler[0] = rx
-                rendercamera.rotation_euler[1] = ry
-                rendercamera.rotation_euler[2] = rz
-                bpy.ops.transform.rotate(
-                    value=1.5708, orient_axis='X', orient_type='LOCAL')
+                # render
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
-            if cb_ani == True:
-                path = f'{outputpath}{panoname}_{frame}_d'
-            else:
-                path = f'{outputpath}{panoname}_d'
-            bpy.context.scene.render.filepath = path
-            bpy.ops.render.render(
-                animation=False, write_still=True, use_viewport=False, layer='', scene='')
+                # left
+                if cb_north == True:
+                    rendercamera.rotation_euler[2] = 1.5708
+                else:
+                    scenecam.select_set(False)
+                    rendercamera.select_set(True)
+                    bpy.ops.transform.rotate(
+                        value=-1.5708, orient_axis='Y', orient_type='LOCAL')
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_l'
+                else:
+                    path = f'{outputpath}{panoname}_l'
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
+
+                # back
+                if cb_north == True:
+                    rendercamera.rotation_euler[2] = 3.14159
+                else:
+                    bpy.ops.transform.rotate(
+                        value=-1.5708, orient_axis='Y', orient_type='LOCAL')
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_b'
+                else:
+                    path = f'{outputpath}{panoname}_b'
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
+
+                # right
+                if cb_north == True:
+                    rendercamera.rotation_euler[2] = 4.71239
+                else:
+                    bpy.ops.transform.rotate(
+                        value=-1.5708, orient_axis='Y', orient_type='LOCAL')
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_r'
+                else:
+                    path = f'{outputpath}{panoname}_r'
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
+
+                # up
+                if cb_north == True:
+                    rendercamera.rotation_euler[0] = 3.14159
+                    rendercamera.rotation_euler[2] = 0
+                else:
+                    scenecam.select_set(False)
+                    rendercamera.select_set(True)
+                    rendercamera.rotation_euler[0] = rx
+                    rendercamera.rotation_euler[1] = ry
+                    rendercamera.rotation_euler[2] = rz
+                    bpy.ops.transform.rotate(
+                        value=-1.5708, orient_axis='X', orient_type='LOCAL')
+
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_u'
+                else:
+                    path = f'{outputpath}{panoname}_u'
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
+
+                # down
+                if cb_north == True:
+                    rendercamera.rotation_euler[0] = 0
+                else:
+                    rendercamera.rotation_euler[0] = rx
+                    rendercamera.rotation_euler[1] = ry
+                    rendercamera.rotation_euler[2] = rz
+                    bpy.ops.transform.rotate(
+                        value=1.5708, orient_axis='X', orient_type='LOCAL')
+
+                if cb_ani == True:
+                    path = f'{outputpath}{panoname}_{frame}_d'
+                else:
+                    path = f'{outputpath}{panoname}_d'
+                bpy.context.scene.render.filepath = path
+                bpy.ops.render.render(
+                    animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
         # CYCLES equirectangular
         else:
@@ -450,8 +505,13 @@ class PCA_OT_panorender(bpy.types.Operator):
 
                 # cubefacecount
                 if bpy.context.scene.render.engine != 'CYCLES':
-                    cubefacecount = framerange * 6 * scenecamslen
-                    renderinfo = f'{cubefacecount} cubeface images will be rendered!'
+                    if self.multirow == True:
+                        cubefacecount = framerange * len(
+                            self.multirow_rotations) * scenecamslen
+                        renderinfo = f'{cubefacecount} multirow images will be rendered!'
+                    else:
+                        cubefacecount = framerange * 6 * scenecamslen
+                        renderinfo = f'{cubefacecount} cubeface images will be rendered!'
                 else:
                     equicount = framerange * scenecamslen
                     renderinfo = f'{equicount} equirectangular panorama will be rendered!'

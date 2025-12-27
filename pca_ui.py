@@ -23,7 +23,7 @@ from math import degrees
 
 
 class PCAPLUS_PT_main(bpy.types.Panel):
-    bl_label = "PanoCamAdder 2.3"
+    bl_label = "PanoCamAdder 2.3.1 WIP"
     bl_idname = "PCAPLUS_PT_Main"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -468,14 +468,14 @@ class PCAPLUS_PT_krpanodepthpano(bpy.types.Panel):
                 row.prop(context.scene, "cb_txtytz", text='tx ty tz')
                 if cb_txtytz == True:
                     row.label(
-                        text=f'tx="{get_krp_loc(obj,decis)[0]}" ty="{get_krp_loc(obj,decis)[1]}" tz="{get_krp_loc(obj,decis)[2]}"')
+                        text=f'tx="{get_krp_loc(obj, decis)[0]}" ty="{get_krp_loc(obj, decis)[1]}" tz="{get_krp_loc(obj, decis)[2]}"')
 
                 # oxoyoz
                 row = layout.row()
                 row.prop(context.scene, "cb_oxoyoz", text='ox oy oz')
                 if cb_oxoyoz == True:
                     row.label(
-                        text=f'ox="{get_krp_loc(obj,decis)[0]}" oy="{get_krp_loc(obj,decis)[1]}" oz="{get_krp_loc(obj,decis)[2]}"')
+                        text=f'ox="{get_krp_loc(obj, decis)[0]}" oy="{get_krp_loc(obj, decis)[1]}" oz="{get_krp_loc(obj, decis)[2]}"')
 
                 # origin
                 row = layout.row()
@@ -614,21 +614,21 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
             row.prop(context.scene, "cb_hsloc", text='tx ty tz')
             if cb_hsloc == True:
                 row.label(
-                    text=f'tx="{get_krp_loc(obj,decis)[0]}" ty="{get_krp_loc(obj,decis)[1]}" tz="{get_krp_loc(obj,decis)[2]}"')
+                    text=f'tx="{get_krp_loc(obj, decis)[0]}" ty="{get_krp_loc(obj, decis)[1]}" tz="{get_krp_loc(obj, decis)[2]}"')
 
             # rotation
             row = layout.row()
             row.prop(context.scene, "cb_hsrot", text='rx ry rz')
             if cb_hsrot == True:
                 row.label(
-                    text=f'rx="{get_krp_rot_3d(obj,decis)[0]}" ry="{get_krp_rot_3d(obj,decis)[1]}" rz="{get_krp_rot_3d(obj,decis)[2]}"')
+                    text=f'rx="{get_krp_rot_3d(obj, decis)[0]}" ry="{get_krp_rot_3d(obj, decis)[1]}" rz="{get_krp_rot_3d(obj, decis)[2]}"')
 
             # scale
             row = layout.row()
             row.prop(context.scene, "cb_scale", text='scale')
             if cb_scale == True:
                 row.label(
-                    text=f'scalex="{get_krp_scale_3d(obj,decis)[0]}" scaley="{get_krp_scale_3d(obj,decis)[1]}" scalez="{get_krp_scale_3d(obj,decis)[2]}"')
+                    text=f'scalex="{get_krp_scale_3d(obj, decis)[0]}" scaley="{get_krp_scale_3d(obj, decis)[1]}" scalez="{get_krp_scale_3d(obj, decis)[2]}"')
 
             # modelurl
             row = layout.row()
@@ -704,7 +704,7 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
             row.prop(context.scene, "cb_hsloc", text='tx ty tz')
             if cb_hsloc == True:
                 row.label(
-                    text=f'tx="{get_krp_loc(obj,decis)[0]}" ty="{get_krp_loc(obj,decis)[1]}" tz="{get_krp_loc(obj,decis)[2]}"')
+                    text=f'tx="{get_krp_loc(obj, decis)[0]}" ty="{get_krp_loc(obj, decis)[1]}" tz="{get_krp_loc(obj, decis)[2]}"')
 
             # rotation
             row = layout.row()
@@ -712,10 +712,10 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
             if cb_hsrot == True:
                 if hstype != "3D":
                     row.label(
-                        text=f'rx="{get_krp_rot(obj,decis)[0]}" ry="{get_krp_rot(obj,decis)[1]}" rz="{get_krp_rot(obj,decis)[2]}"')
+                        text=f'rx="{get_krp_rot(obj, decis)[0]}" ry="{get_krp_rot(obj, decis)[1]}" rz="{get_krp_rot(obj, decis)[2]}"')
                 if hstype == "3D":
                     row.label(
-                        text=f'rx="{get_krp_rot_3d(obj,decis)[0]}" ry="{get_krp_rot_3d(obj,decis)[1]}" rz="{get_krp_rot_3d(obj,decis)[2]}"')
+                        text=f'rx="{get_krp_rot_3d(obj, decis)[0]}" ry="{get_krp_rot_3d(obj, decis)[1]}" rz="{get_krp_rot_3d(obj, decis)[2]}"')
 
             # width/heigth
             if hstype != "3D":
@@ -737,14 +737,14 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
                 row = layout.row()
                 row.prop(context.scene, "cb_scale", text='scale')
                 if cb_scale == True:
-                    row.label(text=f'scale="{get_krp_scale(obj,decis)}"')
+                    row.label(text=f'scale="{get_krp_scale(obj, decis)}"')
             # scale 3D
             if hstype == "3D":
                 row = layout.row()
                 row.prop(context.scene, "cb_scale", text='scale')
                 if cb_scale == True:
                     row.label(
-                        text=f'scalex="{get_krp_scale_3d(obj,decis)[0]}" scaley="{get_krp_scale_3d(obj,decis)[1]}" scalez="{get_krp_scale_3d(obj,decis)[2]}"')
+                        text=f'scalex="{get_krp_scale_3d(obj, decis)[0]}" scaley="{get_krp_scale_3d(obj, decis)[1]}" scalez="{get_krp_scale_3d(obj, decis)[2]}"')
 
             # modelurl
             if hstype == '3D':
@@ -884,14 +884,14 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
                     row.label(text='')
                     row.scale_x = 1.6
                     row.label(
-                        text=f'tx="{get_krp_loc(obj,decis)[0]}" ty="{get_krp_loc(obj,decis)[1]}" tz="{get_krp_loc(obj,decis)[2]}"')
+                        text=f'tx="{get_krp_loc(obj, decis)[0]}" ty="{get_krp_loc(obj, decis)[1]}" tz="{get_krp_loc(obj, decis)[2]}"')
 
                 if obj.data.type == 'SUN':
                     row.scale_x = 0.4
                     row.label(text='')
                     row.scale_x = 1.6
                     row.label(
-                        text=f'ath="{get_krp_sunpos(obj,decis)[0]}" atv="{get_krp_sunpos(obj,decis)[1]}"')
+                        text=f'ath="{get_krp_sunpos(obj, decis)[0]}" atv="{get_krp_sunpos(obj, decis)[1]}"')
 
             # distance
             if obj.data.type == 'SPOT' or obj.data.type == 'POINT':
@@ -947,7 +947,7 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
                 row.prop(obj.data, "energy", text="")
                 row.scale_x = 1.6
                 row.label(
-                    text=f'intensity="{round(obj.data.energy / 10,decis)}"')
+                    text=f'intensity="{round(obj.data.energy / 10, decis)}"')
 
             # color
             row = layout.row()
@@ -957,7 +957,7 @@ class PCAPLUS_PT_krpanohotspot(bpy.types.Panel):
                 row.prop(obj.data, "color", text="")
                 row.scale_x = 1.6
                 row.label(
-                    text=f'color="{floats_to_hex(obj.data.color[0],obj.data.color[1],obj.data.color[2])}"')
+                    text=f'color="{floats_to_hex(obj.data.color[0], obj.data.color[1], obj.data.color[2])}"')
 
             # shadow
             row = layout.row()
@@ -1045,14 +1045,14 @@ class PCAPLUS_PT_krpanoview(bpy.types.Panel):
             row.prop(context.scene, "cb_camtxtytz", text='tx ty tz')
             if cb_camtxtytz == True:
                 row.label(
-                    text=f'tx="{get_krp_loc(obj,decis)[0]}" ty="{get_krp_loc(obj,decis)[1]}" tz="{get_krp_loc(obj,decis)[2]}"')
+                    text=f'tx="{get_krp_loc(obj, decis)[0]}" ty="{get_krp_loc(obj, decis)[1]}" tz="{get_krp_loc(obj, decis)[2]}"')
 
             # oxoyoz
             row = layout.row()
             row.prop(context.scene, "cb_camoxoyoz", text='ox oy oz')
             if cb_camoxoyoz == True:
                 row.label(
-                    text=f'ox="{get_krp_loc(obj,decis)[0]}" oy="{get_krp_loc(obj,decis)[1]}" oz="{get_krp_loc(obj,decis)[2]}"')
+                    text=f'ox="{get_krp_loc(obj, decis)[0]}" oy="{get_krp_loc(obj, decis)[1]}" oz="{get_krp_loc(obj, decis)[2]}"')
 
             # origin
             row = layout.row()
