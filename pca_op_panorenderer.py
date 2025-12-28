@@ -18,7 +18,7 @@
 
 import bpy
 from . pca_funcs import cleanstr
-from .pca_krpfuncs import get_krp_loc, get_krp_align, get_krp_prealign, get_krp_origin
+from .pca_krpfuncs import get_krp_loc, get_krp_rendercamalign, get_krp_rendercamprealign, get_krp_rendercamorigin
 import json
 
 
@@ -69,13 +69,13 @@ class PCA_OT_panorender(bpy.types.Operator):
 
         pcatxt.write('\n')
         pcatxt.write(
-            f'origin="{get_krp_origin(rendercamera, decis)[0]}|{get_krp_origin(rendercamera, decis)[1]}|{get_krp_origin(rendercamera, decis)[2]}"\n')
+            f'origin="{get_krp_rendercamorigin(rendercamera, decis)[0]}|{get_krp_rendercamorigin(rendercamera, decis)[1]}|{get_krp_rendercamorigin(rendercamera, decis)[2]}"\n')
         pcatxt.write(
             f'ox="{get_krp_loc(rendercamera, decis)[0]}" oy="{get_krp_loc(rendercamera, decis)[1]}" oz="{get_krp_loc(rendercamera, decis)[2]}"\n')
         pcatxt.write(
-            f'align="{get_krp_align(rendercamera, decis)[0]}|{get_krp_align(rendercamera, decis)[1]}|{get_krp_align(rendercamera, decis)[2]}"\n')
+            f'align="{get_krp_rendercamalign(rendercamera, decis)[0]}|{get_krp_rendercamalign(rendercamera, decis)[1]}|{get_krp_rendercamalign(rendercamera, decis)[2]}"\n')
         pcatxt.write(
-            f'prealign="{get_krp_prealign(rendercamera, decis)[0]}|{get_krp_prealign(rendercamera, decis)[1]}|{get_krp_prealign(rendercamera, decis)[2]}"\n')
+            f'prealign="{get_krp_rendercamprealign(rendercamera, decis)[0]}|{get_krp_rendercamprealign(rendercamera, decis)[1]}|{get_krp_rendercamprealign(rendercamera, decis)[2]}"\n')
         pcatxt.write('\n')
 
         # JSON
@@ -88,14 +88,14 @@ class PCA_OT_panorender(bpy.types.Operator):
                 p['name'] = f'{panoname}'
                 p['scene'] = f'scene_{panoname.lower()}'
 
-            p['origin'] = (get_krp_origin(rendercamera, decis)[0], get_krp_origin(
-                rendercamera, decis)[1], get_krp_origin(rendercamera, decis)[2])
+            p['origin'] = (get_krp_rendercamorigin(rendercamera, decis)[0], get_krp_rendercamorigin(
+                rendercamera, decis)[1], get_krp_rendercamorigin(rendercamera, decis)[2])
             p['location'] = (get_krp_loc(rendercamera, decis)[0], get_krp_loc(
                 rendercamera, decis)[1], get_krp_loc(rendercamera, decis)[2])
-            p['align'] = (get_krp_align(rendercamera, decis)[0], get_krp_align(
-                rendercamera, decis)[1], get_krp_align(rendercamera, decis)[2])
-            p['prealign'] = (get_krp_prealign(rendercamera, decis)[0], get_krp_prealign(
-                rendercamera, decis)[1], get_krp_prealign(rendercamera, decis)[2])
+            p['align'] = (get_krp_rendercamalign(rendercamera, decis)[0], get_krp_rendercamalign(
+                rendercamera, decis)[1], get_krp_rendercamalign(rendercamera, decis)[2])
+            p['prealign'] = (get_krp_rendercamprealign(rendercamera, decis)[0], get_krp_rendercamprealign(
+                rendercamera, decis)[1], get_krp_rendercamprealign(rendercamera, decis)[2])
             self.jsonoutput.append(p)
 
         # PCI JSON
@@ -159,32 +159,8 @@ class PCA_OT_panorender(bpy.types.Operator):
             bpy.context.scene.render.resolution_y = rendersize
             bpy.context.scene.render.resolution_x = int(rendersize / 3 * 2)
 
-        # if bpy.context.scene.render.engine != 'CYCLES':
-
-        #     bpy.context.object.data.type = 'PERSP'
-
-        #     if self.multirow == True:
-        #         bpy.context.object.data.lens_unit = 'MILLIMETERS'
-        #         bpy.context.object.data.lens = 15
-        #         bpy.context.scene.render.resolution_y = rendersize
-        #         bpy.context.scene.render.resolution_x = int(rendersize / 3 * 2)
-        #     else:
-        #         bpy.context.object.data.lens_unit = 'FOV'
-        #         bpy.context.object.data.angle = 1.5708
-        #         bpy.context.scene.render.resolution_x = rendersize
-        #         bpy.context.scene.render.resolution_y = rendersize
-        # else:
-        #     bpy.context.object.data.type = 'PANO'
-        #     try:
-        #         bpy.context.object.data.cycles.panorama_type = 'EQUIRECTANGULAR'  # blender3.6
-
-        #     except AttributeError:
-        #         bpy.context.object.data.panorama_type = 'EQUIRECTANGULAR'  # blender4.1
-
-        #     bpy.context.scene.render.resolution_x = rendersize
-        #     bpy.context.scene.render.resolution_y = int(rendersize / 2)
-
     # render panorama
+
     def renderpano(self, scenecams, scenecam):
 
         # checkboxes
@@ -229,19 +205,11 @@ class PCA_OT_panorender(bpy.types.Operator):
 
         # IMAGES
         if rendertype == 'images':
-            print('Multirow!')
-            # print output values
-            rendercamera.rotation_euler[0] = self.multirow_rotations[0][0]
-            rendercamera.rotation_euler[1] = 0
-            rendercamera.rotation_euler[2] = self.multirow_rotations[0][1]
-            rendercamera.rotation_euler[0] -= 1.5708
-            self.outputvalues(rendercamera, panoname, frame)
 
-            for rot in self.multirow_rotations:
-                print('Rotation:', rot)
+            for idx, rot in enumerate(self.multirow_rotations):
 
                 rendercamera.rotation_euler[0] = rot[0]
-                rendercamera.rotation_euler[1] = 0
+                rendercamera.rotation_euler[1] = 0.0
                 rendercamera.rotation_euler[2] = rot[1]
 
                 if cb_ani == True:
@@ -254,12 +222,16 @@ class PCA_OT_panorender(bpy.types.Operator):
                 bpy.ops.render.render(
                     animation=False, write_still=True, use_viewport=False, layer='', scene='')
 
+                if idx == 0:
+                    # print output values
+                    self.outputvalues(rendercamera, panoname, frame)
+
         else:
-            print('Panorama!')
             # EEVEE cubefaces
             if bpy.context.scene.render.engine != 'CYCLES':
                 # front
                 if cb_north == True:
+                    print('North aligned cubefaces')
                     rendercamera.rotation_euler[0] = 1.5708
                     rendercamera.rotation_euler[1] = 0
                     rendercamera.rotation_euler[2] = 0
@@ -272,15 +244,13 @@ class PCA_OT_panorender(bpy.types.Operator):
                 else:
                     path = f'{outputpath}{panoname}_f'
 
-                # print output values
-                rendercamera.rotation_euler[0] -= 1.5708
-                self.outputvalues(rendercamera, panoname, frame)
-                rendercamera.rotation_euler[0] += 1.5708
-
                 # render
                 bpy.context.scene.render.filepath = path
                 bpy.ops.render.render(
                     animation=False, write_still=True, use_viewport=False, layer='', scene='')
+
+                # print output values
+                self.outputvalues(rendercamera, panoname, frame)
 
                 # left
                 if cb_north == True:
@@ -381,15 +351,13 @@ class PCA_OT_panorender(bpy.types.Operator):
                 else:
                     path = f'{outputpath}{panoname}'
 
-                # print output values
-                rendercamera.rotation_euler[0] -= 1.5708
-                self.outputvalues(rendercamera, panoname, frame)
-                rendercamera.rotation_euler[0] += 1.5708
-
                 # render
                 bpy.context.scene.render.filepath = path
                 bpy.ops.render.render(
                     animation=False, write_still=True, use_viewport=False, layer='', scene='')
+
+                # print output values
+                self.outputvalues(rendercamera, panoname, frame)
 
         # reset outputpath
         bpy.context.scene.render.filepath = outputpath

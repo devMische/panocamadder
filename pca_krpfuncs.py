@@ -72,6 +72,15 @@ def get_krp_origin(obj, decs):
     return x, y, z
 
 
+def get_krp_rendercamorigin(obj, decs):
+    olmx = obj.matrix_world
+    x = round(olmx.translation[0], decs) * -1
+    y = round(olmx.translation[2], decs)
+    z = round(olmx.translation[1], decs) * -1
+
+    return x, y, z
+
+
 # CENTER
 def get_krp_center(obj, decs):
     olmx = obj.matrix_world
@@ -118,6 +127,17 @@ def get_krp_prealign(obj, decs):
     return x, y, z
 
 
+def get_krp_rendercamprealign(obj, decs):
+    rot_euler = obj.rotation_euler
+    rotmax = obj.matrix_world.to_euler('XYZ', rot_euler)
+
+    x = round(-1 * degrees(rotmax[0]), decs) + 90
+    y = round(-1 * degrees(rotmax[2]), decs)
+    z = round(-1 * degrees(rotmax[1]), decs)
+
+    return x, y, z
+
+
 # ALIGN
 def get_krp_align(obj, decs):
 
@@ -127,6 +147,18 @@ def get_krp_align(obj, decs):
     x = round(degrees(rotmax[1]), decs)
     y = round(degrees(rotmax[2]), decs)
     z = round(degrees(rotmax[0]), decs)
+
+    return x, y, z
+
+
+def get_krp_rendercamalign(obj, decs):
+
+    rot_euler = obj.rotation_euler
+    rotmax = obj.matrix_world.to_euler('YXZ', rot_euler)
+
+    x = round(degrees(rotmax[1]), decs)
+    y = round(degrees(rotmax[2]), decs)
+    z = round(degrees(rotmax[0]), decs) - 90
 
     return x, y, z
 
