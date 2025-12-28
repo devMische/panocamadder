@@ -107,7 +107,7 @@ class PCA_OT_panorender(bpy.types.Operator):
                 pci['pano'] = f'{panoname}.{renderpano_extension}'
             pci['location'] = (round(rendercamera.location[0], decis), round(
                 rendercamera.location[1], decis), round(rendercamera.location[2], decis))
-            pci['rotation'] = (round(rendercamera.rotation_euler[0], decis), round(
+            pci['rotation'] = (round(rendercamera.rotation_euler[0] - 1.5708, decis), round(
                 rendercamera.rotation_euler[1], decis), round(rendercamera.rotation_euler[2], decis))
             self.pcioutput.append(pci)
 
@@ -259,7 +259,7 @@ class PCA_OT_panorender(bpy.types.Operator):
                     scenecam.select_set(False)
                     rendercamera.select_set(True)
                     bpy.ops.transform.rotate(
-                        value=-1.5708, orient_axis='Y', orient_type='LOCAL')
+                        value=+1.5708, orient_axis='Y', orient_type='LOCAL')
                 if cb_ani == True:
                     path = f'{outputpath}{panoname}_{frame}_l'
                 else:
@@ -273,7 +273,7 @@ class PCA_OT_panorender(bpy.types.Operator):
                     rendercamera.rotation_euler[2] = 3.14159
                 else:
                     bpy.ops.transform.rotate(
-                        value=-1.5708, orient_axis='Y', orient_type='LOCAL')
+                        value=+1.5708, orient_axis='Y', orient_type='LOCAL')
                 if cb_ani == True:
                     path = f'{outputpath}{panoname}_{frame}_b'
                 else:
@@ -287,7 +287,7 @@ class PCA_OT_panorender(bpy.types.Operator):
                     rendercamera.rotation_euler[2] = 4.71239
                 else:
                     bpy.ops.transform.rotate(
-                        value=-1.5708, orient_axis='Y', orient_type='LOCAL')
+                        value=+1.5708, orient_axis='Y', orient_type='LOCAL')
                 if cb_ani == True:
                     path = f'{outputpath}{panoname}_{frame}_r'
                 else:
@@ -307,7 +307,7 @@ class PCA_OT_panorender(bpy.types.Operator):
                     rendercamera.rotation_euler[1] = ry
                     rendercamera.rotation_euler[2] = rz
                     bpy.ops.transform.rotate(
-                        value=-1.5708, orient_axis='X', orient_type='LOCAL')
+                        value=+1.5708, orient_axis='X', orient_type='LOCAL')
 
                 if cb_ani == True:
                     path = f'{outputpath}{panoname}_{frame}_u'
@@ -325,7 +325,7 @@ class PCA_OT_panorender(bpy.types.Operator):
                     rendercamera.rotation_euler[1] = ry
                     rendercamera.rotation_euler[2] = rz
                     bpy.ops.transform.rotate(
-                        value=1.5708, orient_axis='X', orient_type='LOCAL')
+                        value=-1.5708, orient_axis='X', orient_type='LOCAL')
 
                 if cb_ani == True:
                     path = f'{outputpath}{panoname}_{frame}_d'
