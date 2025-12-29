@@ -19,6 +19,7 @@
 import bpy
 import math
 import operator
+import os
 
 ops = {"+": operator.add,
        "-": operator.sub,
@@ -306,7 +307,13 @@ class PCA_OT_createallpci(bpy.types.Operator):
 
             rotation = (rot_x, rot_y, rot_z)
 
-            addpci(item['pano'], location, rotation)
+            # check if pano image exists / create panocam
+            imgpath = f'{bpy.types.Scene.jsonpath}/{item["pano"]}'
+            if os.path.isfile(imgpath):
+                addpci(item['pano'], location, rotation)
+            else:
+                self.report(
+                    {'WARNING'}, f'Image file not found: {item["pano"]}')
 
         return {'FINISHED'}
 
@@ -383,6 +390,12 @@ class PCA_OT_createsinglepci(bpy.types.Operator):
 
         rotation = (rot_x, rot_y, rot_z)
 
-        addpci(pcijson[idx]['pano'], location, rotation)
+        # check if pano image exists / create panocam
+        imgpath = f'{bpy.types.Scene.jsonpath}/{pcijson[idx]["pano"]}'
+        if os.path.isfile(imgpath):
+            addpci(pcijson[idx]['pano'], location, rotation)
+        else:
+            self.report(
+                {'WARNING'}, f'Image file not found: {pcijson[idx]["pano"]}')
 
         return {'FINISHED'}
